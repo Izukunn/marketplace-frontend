@@ -1,0 +1,7 @@
+dispatch:
+  # Aturan 1: Arahkan semua request ke subdomain admin ke service 'admin'
+  - url: "admin-dot-project-475280f7-c9c2-4e4a-8b8.uc.r.appspot.com/*"
+    service: admin
+
+  # Aturan 2: (Opsional, sebagai contoh) Arahkan semua request lain ke service 'default'
+  # Secara implisit, semua request yang tidak match aturan di atas akan tetap menuju ke service 'default'.
