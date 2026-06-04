@@ -25,3 +25,6 @@ availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/VITE_MARKETPLACE_API_BASE_URL/versions/latest
       env: 'SECRET_API_URL'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
