@@ -13,8 +13,12 @@ import ProfilePage from '../pages/profile/ProfilePage'
 
 /** Redirects to /login if not authenticated, preserving the intended path. */
 function RequireAuth({ children }) {
-  const { token } = useAuthStore()
+  const { token, isInitialized } = useAuthStore()
   const location = useLocation()
+
+  if (!isInitialized) {
+    return null // or a loading spinner
+  }
 
   if (!token) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />

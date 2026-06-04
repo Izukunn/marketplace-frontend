@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { formatDate } from '../../utils/helpers'
 import { formatPrice, MARKETPLACE_CONFIG } from '../../utils/marketplaceConfig'
 import OrderStatusBadge from './OrderStatusBadge'
@@ -5,7 +6,9 @@ import OrderStatusBadge from './OrderStatusBadge'
 function Row({ label, value }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 py-3 border-b border-gray-100 last:border-0">
-      <span className="text-sm font-medium text-gray-500 sm:w-40 shrink-0">{label}</span>
+      <span className="text-sm font-medium text-gray-500 sm:w-40 shrink-0">
+        {label}
+      </span>
       <span className="text-sm text-gray-800">{value}</span>
     </div>
   )
@@ -13,17 +16,20 @@ function Row({ label, value }) {
 
 export default function OrderDetailCard({ order, marketplace }) {
   const config = MARKETPLACE_CONFIG[marketplace] || {}
+
+  useEffect(() => {
+    console.log(order);
+  }, [])
   if (!order) return null
 
-  const id = order.id || order._id || order.order_id
-  const status = order.status
-  const sku = order.sku || order.model_sku || order.seller_sku
-  const productName = order.product_name || order.item_name || order.name || '-'
-  const qty = order.qty || order.quantity
-  const unitPrice = order.unit_price || order.price
-  const totalPrice = order.total_price || order.totalPrice || order.total
-  const createdAt = order.created_at || order.createdAt
-  const shippingAddress = order.shipping_address || order.shippingAddress
+  const {
+    id,
+    order_code,
+    status,
+    total_price,
+    createdAt,
+    items = [],
+  } = order
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -31,31 +37,94 @@ export default function OrderDetailCard({ order, marketplace }) {
       <div className={`${config.headerBg || 'bg-gray-800'} px-6 py-4`}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-white/70 text-xs">Order ID</p>
-            <p className="text-white font-mono font-bold text-lg">#{String(id).slice(0, 12)}</p>
+            <p className="text-white/70 text-xs">Order Code</p>
+            <p className="text-white font-mono font-bold text-lg">
+              {order_code || `#${String(id).slice(0, 12)}`}
+            </p>
           </div>
+
           <OrderStatusBadge status={status} />
         </div>
       </div>
 
-      {/* Body */}
+      {/* Order Info */}
       <div className="px-6 py-2">
-        <Row label="Marketplace" value={config.name || marketplace} />
-        <Row label="SKU" value={<span className="font-mono">{sku || '-'}</span>} />
-        <Row label="Product" value={productName} />
-        <Row label="Quantity" value={qty ?? '-'} />
-        <Row label="Unit Price" value={formatPrice(unitPrice)} />
-        <Row label="Total Price" value={
-          <span className={`font-bold text-lg ${config.textColor}`}>{formatPrice(totalPrice)}</span>
-        } />
-        {shippingAddress && (
-          <Row label="Shipping Address" value={
-            typeof shippingAddress === 'object'
-              ? Object.values(shippingAddress).filter(Boolean).join(', ')
-              : shippingAddress
-          } />
+        <Row
+          label="Marketplace"
+          value={config.name || marketplace}
+        />
+
+        <Row
+          label="Total Price"
+          value={
+            <span className={`font-bold text-lg ${config.textColor}`}>
+              {formatPrice(total_price)}
+            </span>
+          }
+        />
+
+        <Row
+          label="Created At"
+          value={formatDate(createdAt)}
+        />
+      </div>
+
+      {/* Items */}
+      <div className="border-t border-gray-100 px-6 py-4">
+        <h3 className="font-semibold text-gray-800 mb-4">
+          Order Items
+        </h3>
+
+        <div className="space-y-4">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="border rounded-xl p-4 bg-gray-50"
+            >
+              <div className="flex gap-4">
+                <img
+                  src={
+                    item.product?.thumbnail_url ||
+                    '/placeholder-product.png'
+                  }
+                  alt={item.product?.product_name}
+                  className="w-20 h-20 rounded-lg object-cover border"
+                />
+
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900">
+                    {item.product?.product_name}
+                  </h4>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    SKU:{' '}
+                    <span className="font-mono">
+                      {item.marketplace_sku}
+                    </span>
+                  </p>
+
+                  <div className="mt-2 text-sm text-gray-700">
+                    <p>Quantity: {item.quantity}</p>
+                    <p>
+                      Unit Price:{' '}
+                      {formatPrice(item.price)}
+                    </p>
+                    <p className="font-semibold">
+                      Subtotal:{' '}
+                      {formatPrice(item.price * item.quantity)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {items.length === 0 && (
+          <p className="text-sm text-gray-500">
+            No items found.
+          </p>
         )}
-        <Row label="Created At" value={formatDate(createdAt)} />
       </div>
     </div>
   )

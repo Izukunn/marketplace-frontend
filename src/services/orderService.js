@@ -11,17 +11,12 @@ export const createOrder = (marketplace, sku, quantity) => {
   const config = MARKETPLACE_CONFIG[marketplace]
   if (!config) throw new Error(`Unknown marketplace: ${marketplace}`)
   const body = config.buildOrderBody(sku, quantity)
+  console.log('Creating order with body:', body);
   return api.post(`/${marketplace}/orders`, body)
 }
 
-/**
- * Fetch paginated orders for the current user.
- */
 export const getOrders = (marketplace, params = {}) =>
-  api.get(`/${marketplace}/orders`, { params })
+  api.get(`/${marketplace}/my-orders`, { params })
 
-/**
- * Fetch a single order by ID.
- */
 export const getOrderById = (marketplace, id) =>
   api.get(`/${marketplace}/orders/${id}`)

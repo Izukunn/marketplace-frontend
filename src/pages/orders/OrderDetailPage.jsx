@@ -8,33 +8,68 @@ import LoadingSpinner from '../../components/common/LoadingSpinner'
 export default function OrderDetailPage() {
   const { id } = useParams()
   const { marketplace, config } = useMarketplace()
+
   const [order, setOrder] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (!id) {
+      setError('Order ID is required')
+      setLoading(false)
+      return
+    }
+
     let cancelled = false
-    setLoading(true)
-    setError('')
-    getOrderById(marketplace, id)
-      .then(({ data }) => {
-        if (!cancelled) {
-          const o = data.data || data
-          setOrder(o)
+
+    const fetchOrder = async () => {
+      try {
+        setLoading(true)
+        setError('')
+
+        const { data } = await getOrderById(marketplace, id)
+
+        console.log('Order Response:', data)
+
+        if (cancelled) return
+
+        if (data?.success && data?.order) {
+          setOrder(data.order)
+        } else {
+          throw new Error('Order not found')
         }
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err.response?.data?.message || 'Order not found')
-      })
-      .finally(() => { if (!cancelled) setLoading(false) })
-    return () => { cancelled = true }
+      } catch (err) {
+        if (cancelled) return
+
+        setError(
+          err.response?.data?.message ||
+          err.message ||
+          'Order not found'
+        )
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchOrder()
+
+    return () => {
+      cancelled = true
+    }
   }, [marketplace, id])
 
-  if (loading) return <LoadingSpinner color={config.textColor} />
+  if (loading) {
+    return <LoadingSpinner color={config?.textColor} />
+  }
 
   return (
-    <div className="flex flex-col gap-4 max-w-2xl mx-auto">
-      <Link to={`/${marketplace}/my-orders`} className={`text-sm ${config.textColor} hover:underline`}>
+    <div className="max-w-4xl mx-auto flex flex-col gap-4">
+      <Link
+        to={`/${marketplace}/my-orders`}
+        className={`text-sm ${config?.textColor} hover:underline`}
+      >
         ← Back to My Orders
       </Link>
 
@@ -42,8 +77,15 @@ export default function OrderDetailPage() {
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
           {error}
         </div>
+      ) : order ? (
+        <OrderDetailCard
+          order={order}
+          marketplace={marketplace}
+        />
       ) : (
-        <OrderDetailCard order={order} marketplace={marketplace} />
+        <div className="p-4 bg-gray-50 border rounded-xl text-gray-500 text-sm">
+          Order not found
+        </div>
       )}
     </div>
   )

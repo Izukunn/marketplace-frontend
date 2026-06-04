@@ -8,7 +8,7 @@ export default function RegisterPage() {
   const navigate = useNavigate()
   const { register } = useAuthStore()
 
-  const [form, setForm] = useState({ name: '', email: '', username: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', password: '', passwordConfirmation: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState('')
@@ -19,8 +19,8 @@ export default function RegisterPage() {
     const e = {}
     if (!form.name.trim()) e.name = 'Name is required'
     if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = 'Invalid email address'
-    if (!form.username.trim()) e.username = 'Username is required'
     if (form.password.length < 6) e.password = 'Password must be at least 6 characters'
+    if (form.password !== form.passwordConfirmation) e.passwordConfirmation = 'Passwords do not match'
     return e
   }
 
@@ -32,7 +32,7 @@ export default function RegisterPage() {
     setLoading(true)
     setApiError('')
     try {
-      await register(form)
+      await register({ name: form.name, email: form.email, password: form.password })
       navigate('/login')
     } catch (err) {
       setApiError(err.response?.data?.message || err.message || 'Registration failed')
@@ -79,16 +79,6 @@ export default function RegisterPage() {
               autoComplete="email"
             />
             <Input
-              label="Username"
-              id="username"
-              type="text"
-              placeholder="username"
-              value={form.username}
-              onChange={update('username')}
-              error={errors.username}
-              autoComplete="username"
-            />
-            <Input
               label="Password"
               id="password"
               type="password"
@@ -96,6 +86,16 @@ export default function RegisterPage() {
               value={form.password}
               onChange={update('password')}
               error={errors.password}
+              autoComplete="new-password"
+            />
+            <Input
+              label="Confirm Password"
+              id="passwordConfirmation"
+              type="password"
+              placeholder="Confirm your password"
+              value={form.passwordConfirmation}
+              onChange={update('passwordConfirmation')}
+              error={errors.passwordConfirmation}
               autoComplete="new-password"
             />
             <Button
