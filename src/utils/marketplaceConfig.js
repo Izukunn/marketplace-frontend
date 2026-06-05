@@ -54,7 +54,7 @@ export const MARKETPLACE_CONFIG = {
     headerBg: 'bg-blue-900',
     fields: {
       name: 'title',           // fallback to 'name'
-      sku: 'seller_sku',
+      sku: 'marketplace_sku',  // API returns marketplace_sku; buildOrderBody maps it to seller_sku
       stock: 'quantity',       // lazada uses quantity for stock
       price: 'price',
     },
